@@ -14,7 +14,6 @@ const rsa = require('./lib/rsasign/rsa')
 const localStorage = require('store')
 
 const RES_OK = 200
-const RES_FAIL = 500
 const RES_OLD_CLIENT = 501
 
 const DEFAULT_MAX_RECONNECT_ATTEMPTS = 10
@@ -148,12 +147,10 @@ class Pomelo extends EventEmitter {
     }
     let onerror = function (event) {
       self.emit('io-error', event)
-      console.error('socket error: ', event)
     }
     let onclose = function (event) {
       self.emit('close', event)
       self.emit('disconnect', event)
-      console.warn('socket close: ', event.target.url, event)
       if (params.reconnect && self.reconnectAttempts < self.maxReconnectAttempts) {
         self.reconnect = true
         self.reconnectAttempts++
@@ -164,7 +161,6 @@ class Pomelo extends EventEmitter {
       }
     }
     self.socket = new WebSocket(url)
-    console.log('connect to ' + url)
     self.socket.binaryType = 'arraybuffer'
     self.socket.onopen = onopen.bind(this)
     self.socket.onmessage = onmessage.bind(this)
@@ -214,7 +210,6 @@ class Pomelo extends EventEmitter {
     if (this.socket) {
       if (this.socket.disconnect) this.socket.disconnect()
       if (this.socket.close) this.socket.close()
-      console.log('disconnect')
       this.socket = null
     }
 
@@ -278,8 +273,6 @@ class Pomelo extends EventEmitter {
   send (packet) {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(packet)
-    } else {
-      console.warn('socket is not open: readyState ' + (this.socket ? this.socket.readyState : -1))
     }
   }
 
@@ -319,7 +312,6 @@ class Pomelo extends EventEmitter {
         self.heartbeatTimeoutCb()
       }, gap)
     } else {
-      console.error('server heartbeat timeout')
       this.emit('heartbeat timeout')
       this.disconnect()
     }
